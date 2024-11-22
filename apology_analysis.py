@@ -14,8 +14,8 @@ from nlp import TEXT
 
 def filenames(folder):
     text_files = []
-    for file in os.listdir("apologies"):
-        pathway = "apologies/" + file
+    for file in os.listdir(folder):
+        pathway = folder +"/" + file
         text_files.append(pathway)
     return text_files
 
