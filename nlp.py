@@ -20,12 +20,12 @@ class TEXT:
 
         text = self.remove_punc(text)
 
-        text = self.load_stop_words(text, stop_words)
+        text, word_count = self.load_stop_words(text, stop_words)
 
         # sentiment = self.sentiment_analysis(text)
         file_identifier = file.split("/")[1]
 
-        self.files[file_identifier] = text
+        self.files[file_identifier] = {"text": text, "word count": word_count, "attributes": []}
 
 
 
@@ -40,33 +40,39 @@ class TEXT:
                 text_list.append(line)
         return text_list
 
-    def specific_punc(self, mark, text):
-        total_speech = ""
-        text.split(mark)
-        for i in text:
-            if i != mark:
-                total_speech += i
-        return total_speech
+
 
     def remove_punc(self, text):
         string = str(" ")
         string  = string.join(text)
         punc_marks = [".", ",", "!", ":", ";", "(", ")"]
-        #  for mark in punc_marks:
-           # text = text.replace(mark, "")
-        return total
+        word  = ""
+        for letter in range(len(string)):
+            word += string[letter]
 
+        for mark in punc_marks:
+            word = word.replace(mark, "")
+        return word
+
+    def remove_word(self, word, stop_word):
+        if word not in stop_word:
+          return word
+
+    def filter_nones(self, item):
+        return item != None
 
 
     def load_stop_words(self, text, stopfile):
+        text = text.split(" ")
+        stopfile = [stopfile]*len(text)
+        phrase_words_removed = list(map(self.remove_word,text, stopfile))
+        phrase_words_removed = list(filter(self.filter_nones, phrase_words_removed))
 
-        modified_text = []
-        for i in text:
-            if i not in stopfile:
-                modified_text.append(i)
-
-        return modified_text
-
+        phrase = ""
+        for word in range(len(phrase_words_removed)):
+            phrase += phrase_words_removed[word].lower()
+            phrase += " "
+        return phrase, len(phrase_words_removed)
 
 
   #  def wordcount_sankey(self, word_list=None, k=5):

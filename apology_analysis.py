@@ -3,7 +3,9 @@ Filename: apology_analysis.py
 
 A file to analyze different apologies
 
-Authors: Emma Penn,
+Authors: Emma Penn, Imogen Slavin, Jessica Baumann
+DS 3500 Fall 2024
+Professor John Rachlin
 '''
 
 import os
