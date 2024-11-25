@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from collections import Counter
 import plotly.express as px
 from nlp_parser import txt_parser
+from textblob import TextBlob
+from textblob.sentiments import
 
 class TEXT:
 
@@ -35,6 +37,8 @@ class TEXT:
             string = self.remove_punc(text_information["text"])
             text_information["text"] = self.load_stop_words(string, self.stop_words)
 
+            text_information["sentiment"] = self.sentiment_analysis(text_information["text"])
+
 
             self.files[filename] = text_information
 
@@ -52,7 +56,18 @@ class TEXT:
             text = text.replace(word, "")
         return text
 
-   # def sentiment_analysis(self, text):
+    def sentiment_analysis(self, text):
+        '''
+        Made using the Textblob Library example for sentiment analysis
+        https://textblob.readthedocs.io/en/dev/advanced_usage.html#sentiment-analyzers
+        '''
+
+        text_analysis = TextBlob(text, analyzer = NaiveBayesAnalyzer())
+        return text_analysis.sentiment
+
+
+
+
 
     def barplot(self, file_word_counts, k=10):
         """
