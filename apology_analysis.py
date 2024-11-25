@@ -86,6 +86,14 @@ def main():
     analysis.barplot(file_word_counts, k=10)
 
     analysis.sunburst(file_word_counts, k=10)
+def example_framework():
+    nlp = TEXT()
+    nlp.add_stop_words("stopwords.txt")
+    files = filenames("apologies")
+    for file in files:
+        nlp.load_text(files, parser = "txt_file")
 
-if __name__ == "__main__":
-    main()
+
+
+if __name__ == "__example_framework__":
+    example_framework()
