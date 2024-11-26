@@ -10,7 +10,8 @@ def txt_parser(filename):
         for line in infile:
             line = line.split("\n")[0]
             for word in range(len(line)):
-                string += line[word]
+                string += line[word].lower()
+                #string += " "
     words = string.split(" ")
     wc = Counter(words)
     num = len(words)
