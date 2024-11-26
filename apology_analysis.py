@@ -8,7 +8,6 @@ Professor John Rachlin
 import os
 import pandas as pd
 from nlp import TEXT
-from sankey import make_sankey
 from collections import Counter
 
 def filenames(folder):
@@ -19,25 +18,31 @@ def filenames(folder):
         text_files.append(pathway)
     return text_files
 
-
 def main():
-    """Main function for apology analysis."""
+
     analysis = TEXT()
     analysis.add_stop_words('stopwords.txt')
-    files_to_read = filenames("apologies")
+    public_figures = filenames("public figures")
+    politicians = filenames("politicians")
+    corp_leaders = filenames("corporate leaders")
 
-    print(analysis.stop_words)
+    for file in public_figures:
+        analysis.load_text(file, category = "public figures")
 
-    for file in files_to_read:
-        analysis.load_text(file)
+    for file in politicians:
+        analysis.load_text(file, category = "politicians")
 
-    print(analysis.files)
+
+    for file in corp_leaders:
+        analysis.load_text(file, category = "corporate leaders")
 
     analysis.generate_sankey()
 
     analysis.barplot()
 
     analysis.sunburst(k=10)
+
+    analysis.sentiment_plot(colors = ['midnightblue', 'forestgreen', 'fuchsia', 'steelblue'])
 
 if __name__ == "__main__":
     main()

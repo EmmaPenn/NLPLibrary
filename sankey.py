@@ -1,10 +1,10 @@
-"""
+'''
 sankey.py: a file that generates sankey diagrams
 
 Authors: Emma Penn, Imogen Slavin, Jessica Baumann
 DS 3500 Fall 2024
 Professor John Rachlin
-"""
+'''
 
 import pandas as pd
 import plotly.graph_objects as go

@@ -1,7 +1,13 @@
+'''
+nlp_parser.py:
 
+Authors: Emma Penn, Imogen Slavin, Jessica Baumann
+DS 3500 Fall 2024
+Professor John Rachlin
+
+'''
 
 from collections import Counter
-
 
 def txt_parser(filename):
     file  = open(filename)

@@ -17,6 +17,7 @@ from collections import defaultdict
 from heapq import nlargest
 import pandas as pd
 import plotly.graph_objects as go
+from readability import Readability
 
 class TEXT:
 
@@ -26,7 +27,7 @@ class TEXT:
         self.stop_words = []
 
     def add_stop_words(self, stop_words_file):
-        # add a global variable for the stop words that will be used for each text file
+        """add a global variable for the stop words that will be used for each text file"""
 
         with open(stop_words_file, "r") as infile:
             for line in infile:
@@ -35,11 +36,17 @@ class TEXT:
 
 
     def load_text(self, filename, category, parser = "txt_file"):
-        # Register a text file with the library. The label is an optional label you’ll use in your
-        # visualizations to identify the text
+        """Registers a text file with the library"""
 
         if parser == "txt_file":
             text_information = txt_parser(filename)
+
+            reading_text = Readability(text_information["text"]).ari()
+            grade_score = Readability(text_information["text"]).flesch_kincaid()
+            text_information["fk score"] = grade_score.score
+
+            text_information["readability"] = reading_text.score
+
 
             string = self.remove_punc(text_information["text"])
             text_information["text"] = self.load_stop_words(string, self.stop_words)
@@ -48,13 +55,12 @@ class TEXT:
 
             text_information["category"] = category
 
-            filename = filename.split('apologies/')[1]
+            filename = filename.split('/')[1]
             self.files[filename] = text_information
-
-        print(text_information["sentiment"])
 
 
     def remove_punc(self, text):
+        """ removes punctuation from text"""
         punc_marks = [".", "!", ",", ":", ";", "(", ")", "-", "[", "]"]
 
         for mark in punc_marks:
@@ -63,6 +69,7 @@ class TEXT:
 
 
     def load_stop_words(self, text, stopfile):
+        """ remove stop words from the text"""
         text = text.split(" ")
         total = ""
 
@@ -71,16 +78,15 @@ class TEXT:
         return ' '.join(words)
 
     def sentiment_analysis(self, text):
-        '''
-        Made using the Textblob Library example for sentiment analysis
-        https://textblob.readthedocs.io/en/dev/advanced_usage.html#sentiment-analyzers
-        '''
+        """ sentiment analysis to get polarity and subjectivity made using the Textblob Library example
+        for sentiment analysis https://textblob.readthedocs.io/en/dev/advanced_usage.html#sentiment-analyzers
+        """
 
         text_analysis = TextBlob(text, analyzer = PatternAnalyzer())
         return text_analysis.sentiment
 
     def reducer(self, counts, word_list):
-
+        """creates counts for each word in the list"""
         counts[word_list] += 1
 
         return counts
@@ -102,35 +108,29 @@ class TEXT:
             totals = dict(reduce(self.reducer, words, counts))
 
             top_words = nlargest(k, totals, totals.get)
-            print(top_words)
 
         for file, attributes in self.files.items():
             words = attributes["text"].split()
             word_counts = Counter(words)
 
-            # Store per-file word count
             file_word_counts[file] = word_counts
 
-        # Determine the set of words to include
             if selected_words:
                 final_words = set(selected_words)
             else:
                 words = attributes["text"].split()
                 word_counts = Counter(words)
 
-                # Remove stop words
                 word_counts = {word: count for word, count in word_counts.items() if word in top_words}
 
-                # Update global word count
                 all_word_counts.update(word_counts)
 
-                # Store per-file word count
                 file_word_counts[file] = word_counts
 
         return file_word_counts, top_words
 
     def prepare_sankey_data(self, file_word_counts, final_words):
-        """Prepare data for the Sankey diagram."""
+        """Prepare data for the Sankey diagram by making a DataFrame"""
         rows = []
 
         for file, word_counts in file_word_counts.items():
@@ -142,7 +142,7 @@ class TEXT:
         return pd.DataFrame(rows, columns=["Source", "Target", "Value"])
 
     def generate_sankey(self, k=None, selected_words=None):
-        # Generate Sankey diagram
+        """Generates Sankey diagram"""
 
         file_word_counts, top_words = self.preprocess_text()
         sankey_data = self.prepare_sankey_data(file_word_counts, top_words)
@@ -154,10 +154,8 @@ class TEXT:
             pad=10
         )
 
-
     def barplot(self, k=10):
-        """
-        Creates a bar plot with subplots for each text file, showing the frequency
+        """ Creates a bar plot with subplots for each text file, showing the frequency
         of the top k words in each file.
         """
         file_word_counts, words = self.preprocess_text(k, selected_words=None)
@@ -211,32 +209,78 @@ class TEXT:
         fig.update_traces(textinfo="label+percent entry")  # Show labels and percentages
         fig.show()
 
-        def sentiment_plot(self):
+    def get_dictionary(self, empty_dict, attribute):
+        """ changes a dictionary to include an attribute for each category"""
+        for file, attributes in self.files.items():
+            if attributes["category"] in empty_dict.keys():
+                 empty_dict[attributes["category"]].append(attributes[attribute])
+            else:
+                empty_dict[attributes["category"]] = []
+                empty_dict[attributes["category"]].append(attributes[attribute])
 
-            fig = go.Figure()
+        for key, value in empty_dict.items():
+            empty_dict[key] = (sum(value) / len(value)) / 100
+        return empty_dict
 
-            category_polarity  = {}
-            for file in self.files:
-                if file["category"] in category_polarity:
-                    category_polarity[file["category"]] = [file["category"]].append(file["sentiment"][0])
-                else:
-                    category_polarity[file["category"]] = [file["sentiment"][0]]
+    def sentiment_plot(self, colors):
+        """ creates a scatter plot with different sentiment attributes """
+        total = {}
+
+        category_polarity = {}
+
+        for file, attributes in self.files.items():
+            if attributes["category"] in category_polarity.keys():
+                 category_polarity[attributes["category"]].append(attributes["sentiment"][0])
+            else:
+                category_polarity[attributes["category"]] = []
+                category_polarity[attributes["category"]].append(attributes["sentiment"][0])
 
 
+        category_subjectivity = {}
 
-            for key, value in category_polarity.items():
-                category_polarity[key] = sum(value)/len(value)
+        for file, attributes in self.files.items():
+            if attributes["category"] in category_subjectivity.keys():
+                category_subjectivity[attributes["category"]].append(attributes["sentiment"][1])
+            else:
+                category_subjectivity[attributes["category"]] = []
+                category_subjectivity[attributes["category"]].append(attributes["sentiment"][1])
 
+        for key, value in category_polarity.items():
+            category_polarity[key] = sum(value) / len(value)
+
+        for key, value in category_subjectivity.items():
+            category_subjectivity[key] = sum(value) / len(value)
+
+        total["polarity"] = category_polarity
+
+        total["subjectivity"] = category_subjectivity
+
+        ari_dict = {}
+        fk_dict = {}
+
+        ari_dict = self.get_dictionary(ari_dict, "readability")
+        fk_dict = self.get_dictionary(fk_dict, "fk score")
+        total["ari readability"] = ari_dict
+        total["flesch kincaid score"] = fk_dict
+        fig = go.Figure()
+        color_iter = 0
+        for key, value in total.items():
             fig.add_trace(go.Scatter(
-                x = list(category_polarity.values()),
-                y = list(category_polarity.keys()),
-                marker = dict(color = "blue", size = 12),
-                mode = "markers",
-                name = "polarity"
-
+                x=list(value.values()),
+                y=list(value.keys()),
+                marker=dict(color=colors[color_iter],
+                            size=12),
+                mode="markers",
+                name= key
             ))
+            color_iter += 1
+
+        fig.update_layout(title=dict(text='Complexity and Sentiment Comparison across Different Speaker Types'),
+                          xaxis=dict(title=dict(text='Scaled Score')),
+                          yaxis=dict(title=dict(text='Speaker Type')))
+        fig.show()
 
 
-            fig.show()
+
 
 
